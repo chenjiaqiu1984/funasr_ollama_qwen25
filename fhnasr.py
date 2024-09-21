@@ -8,9 +8,10 @@ import datetime
 from openai import OpenAI
 
 
-
+#这个函数用于与qwen模型通信
 def chat_with_ollama(messages: list[dict]):
     base_url = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434/v1')
+    #电脑比较懒，用的7b模型
     model = os.getenv('OLLAMA_MODEL', 'qwen2.5:7b')
 
 
@@ -26,28 +27,15 @@ def chat_with_ollama(messages: list[dict]):
     return response.choices[0].message.content
 
 
-def on_message(content):
-    msg.stream_token(content)
 
 
+#这个函数用来转换文件
+#参数textpath没啥用了，原来是输出.txt文件
 def convert_media_to_text(media_path,text_path,model,md_pat):
-    isVideo = 0
     audio_path = media_path
-    print(datetime.datetime.now(), "audio file ", media_path)
 
-    '''
-    isVideo=0
-    if(media_path.endswith(('.wav'))):
-        isVideo = 0
-        audio_path = media_path
-        print(datetime.datetime.now(), "audio file ", media_path)
 
-    else:
-        isVideo = 1
-        audio_path = media_path.rsplit('.', 1)[0] + '.wav'
-        ffmpeg.input(media_path).output(audio_path).run()
-        print(datetime.datetime.now(), "not audio file ", media_path)
-    '''
+
     res = model.generate(input=audio_path,
                          batch_size_s=300,
                          hotword='魔搭')
@@ -58,10 +46,6 @@ def convert_media_to_text(media_path,text_path,model,md_pat):
 
     #print(datetime.datetime.now(),"convert_media_to_text ",media_path, text_path,audio_path)
 
-    if isVideo==1:
-        isVideo=0
-        os.remove(audio_path)
-        print(datetime.datetime.now(),"remove audio file ",audio_path)
 
     content = text
 
@@ -121,14 +105,18 @@ def process_directory(directory,model):
                 text_path=os.path.join(root,file.rsplit('.',1)[0]+'.txt')
                 md_Pat=os.path.join(root,file.rsplit('.',1)[0]+'.md')
 
+                #已经有txt文件的删掉，这段可以删除，因为我原来已经跑过txt的脚本，想先把不用的格式删掉
                 if(os.path.exists(text_path)):
                     os.remove(text_path)
 
                 #print(datetime.datetime.now(),"process_directory",directory,media_path, text_path)
 
+                #防止第二次跑的时候有重复的任务，如果你确实需要重新跑，那么这段可以注释掉
                 if(os.path.exists(md_Pat)):
                     print("skip")
                 else:
+
+                    #转换的主执行
                     convert_media_to_text(media_path,text_path,model,md_Pat)
 
 
@@ -143,7 +131,7 @@ if __name__ == "__main__":
     model = AutoModel(model="paraformer-zh", model_revision="v2.0.4",
                       vad_model="fsmn-vad", vad_model_revision="v2.0.4",
                       punc_model="ct-punc-c", punc_model_revision="v2.0.4",
-                      device="cuda"
+                      device="cuda"  #没装cuda可以注释掉
                       # spk_model="cam++", spk_model_revision="v2.0.2",
                       )
 

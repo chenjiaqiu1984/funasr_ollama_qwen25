@@ -2,3 +2,5 @@
 
 
 安装ollama https://baijiahao.baidu.com/s?id=1800471524503436919&wfr=spider&for=pc
+
+---write by jchen287@ford.com
